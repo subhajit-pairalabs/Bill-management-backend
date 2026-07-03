@@ -1,0 +1,32 @@
+﻿# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# Local storage (ephemeral -- never commit uploads)
+src/storage/upload/*
+src/storage/temp/*
+src/storage/processed/*
+src/storage/thumbnails/*
+!src/storage/**/.gitkeep
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Firebase service account (sensitive credential)
+firebase-service-account.json
+
+# Generated OpenAPI spec (regenerated on each server start)
+src/docs/openapi.json

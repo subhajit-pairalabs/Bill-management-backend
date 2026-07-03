@@ -1,0 +1,18 @@
+﻿-- =============================================================
+-- BillVault -- Index Definitions
+-- =============================================================
+-- All indexes are defined here separately for readability and
+-- easier performance tuning without scanning the full schema.
+--
+-- Index strategy:
+--   GIN index on bills.search_vector         (full-text search)
+--   B-tree  on bills.user_id                 (most queries filter by user)
+--   B-tree  on bills.family_vault_id          (vault bill listing)
+--   B-tree  on bills.category_id             (category filter)
+--   B-tree  on bills.bill_date DESC          (chronological listing)
+--   B-tree  on bills.warranty_expiry         (warranty cron queries)
+--   B-tree  on reminders.remind_at           (cron + scheduling queries)
+--   B-tree  on notifications.user_id + created_at (notification listing)
+--   Unique  on users.email                   (login lookup)
+--   Partial on bills.deleted_at IS NULL      (active-only queries -- most common)
+-- =============================================================

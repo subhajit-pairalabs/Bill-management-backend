@@ -1,0 +1,3 @@
+﻿# docker-compose.yml
+# Full implementation to be completed during Phase 9 (Deployment).
+# Services: app, postgres, redis
