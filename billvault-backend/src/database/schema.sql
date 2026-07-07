@@ -1,13 +1,5 @@
 -- database/schema.sql
--- Do not drop tables if they exist, but normally we use IF NOT EXISTS
+-- Base SQL Structure Entry Point
+-- Note: All business tables are managed via migrations in the /migrations directory.
 
-CREATE TABLE IF NOT EXISTS profiles (
-    id UUID PRIMARY KEY,
-    email TEXT,
-    full_name TEXT,
-    avatar_url TEXT,
-    phone TEXT,
-    provider TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
