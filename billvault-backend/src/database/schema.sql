@@ -1,30 +1,13 @@
-﻿-- =============================================================
--- BillVault -- Complete Database Schema Snapshot
--- =============================================================
--- This file represents the current state of the full schema.
--- It is NOT run directly in production (use migrations/ instead).
--- Update this file manually after each migration is applied.
---
--- Tables (to be defined during implementation phases):
---   users
---   user_profiles
---   user_consents
---   categories
---   bills
---   reminders
---   notifications
---   device_tokens
---   family_vaults
---   vault_members
---   email_connections
---   subscriptions
---   subscription_events
---   refresh_tokens
---
--- Key design decisions:
---   Primary keys    : UUID via gen_random_uuid()
---   Soft deletes    : deleted_at TIMESTAMPTZ column (NULL = active record)
---   Full-text search: search_vector TSVECTOR on bills table (GIN index)
---   Audit timestamps: created_at, updated_at on all tables
---   Encrypted fields: access_token, refresh_token in email_connections (AES-256)
--- =============================================================
+-- database/schema.sql
+-- Do not drop tables if they exist, but normally we use IF NOT EXISTS
+
+CREATE TABLE IF NOT EXISTS profiles (
+    id UUID PRIMARY KEY,
+    email TEXT,
+    full_name TEXT,
+    avatar_url TEXT,
+    phone TEXT,
+    provider TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

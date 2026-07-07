@@ -1,13 +1,25 @@
-﻿/**
+/**
  * @file validators/auth.validator.js
- * @description Joi schemas: registerSchema (name, email, password strength), loginSchema, otpVerifySchema, refreshTokenSchema
- *
- * Validator rules:
- *  - Use Joi for all schema definitions
- *  - Export named schema constants (not default export)
- *  - Used exclusively by validation.middleware.js
- *  - Never import from services or repositories
- *
- * @layer Validator
- * @module auth
  */
+const Joi = require('joi');
+
+const googleLoginSchema = Joi.object({
+    // We expect the bearer token in headers, body might be empty or contain additional info
+});
+
+const otpRequestSchema = Joi.object({
+    phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).required().messages({
+        'string.pattern.base': 'Invalid phone number format'
+    })
+});
+
+const otpVerifySchema = Joi.object({
+    phone: Joi.string().pattern(/^\+?[1-9]\d{1,14}$/).required(),
+    code: Joi.string().length(6).required()
+});
+
+module.exports = {
+    googleLoginSchema,
+    otpRequestSchema,
+    otpVerifySchema
+};

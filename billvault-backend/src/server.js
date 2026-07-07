@@ -1,17 +1,31 @@
-﻿/**
+/**
  * @file server.js
- * @description Application entry point. Imports the Express app and starts HTTP server.
- * Also bootstraps all stateful connections before accepting traffic.
- *
- * Startup sequence:
- *  1. Load and validate environment variables (config/env.js)
- *  2. Connect to PostgreSQL (config/database.js)
- *  3. Connect to Redis (config/redis.js)
- *  4. Initialize BullMQ workers (src/workers/*)
- *  5. Start Cron jobs (src/cron/*)
- *  6. Start HTTP server via app.listen()
- *  7. Register SIGTERM / SIGINT graceful shutdown handlers
- *
- * @layer Gateway
- * @module Server
  */
+require('dotenv').config();
+
+const app = require('./app');
+const PORT = process.env.PORT || 8000;
+
+const startServer = async () => {
+    try {
+        console.log('--- Initializing BillVault Backend ---');
+        
+        // Check Database configuration
+        const { supabase } = require('./config/database');
+        if (supabase) {
+            console.log('✅ Supabase Client Initialized Successfully');
+        }
+
+        // Start Express Server
+        app.listen(PORT, () => {
+            console.log(`✅ Express Server is running on port: ${PORT}`);
+            console.log('✅ Auth module loaded and routes are ready at /api/v1/auth');
+        });
+
+    } catch (error) {
+        console.error('❌ Failed to start server:', error.message);
+        process.exit(1);
+    }
+};
+
+startServer();

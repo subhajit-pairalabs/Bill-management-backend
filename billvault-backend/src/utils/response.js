@@ -1,14 +1,20 @@
-﻿/**
+/**
  * @file utils/response.js
- * @description Standardized API response wrapper.
- * Ensures every endpoint returns a consistent JSON shape.
- *
- * Success shape: { success: true,  data: {...},  message: "string", meta: {...} }
- * Error shape:   { success: false, error: { code, message, details } }
- *
- * Exports:
- *  - success(res, statusCode, data, message, meta)
- *  - error(res, statusCode, message, details)
- *
- * @layer Utils
  */
+const success = (res, statusCode = 200, data = {}, message = "Success") => {
+    return res.status(statusCode).json({
+        success: true,
+        message,
+        data
+    });
+};
+
+const error = (res, statusCode = 500, message = "Internal Server Error", details = {}) => {
+    return res.status(statusCode).json({
+        success: false,
+        message,
+        error: details
+    });
+};
+
+module.exports = { success, error };

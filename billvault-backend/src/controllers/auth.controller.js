@@ -1,20 +1,33 @@
-﻿/**
+/**
  * @file controllers/auth.controller.js
- * @description HTTP boundary controller for: Authentication: register, login, logout, token refresh, OTP verify, Google OAuth callback
- *
- * Controller responsibilities (ONLY):
- *  1. Extract and sanitize inputs from req.body, req.params, req.query, req.file, req.user
- *  2. Call exactly ONE service method
- *  3. Return standardized JSON response via utils/response.js
- *
- * Controllers NEVER:
- *  - Contain business logic
- *  - Query the database directly
- *  - Call external APIs directly
- *  - Call other controllers
- *
- * All async handlers are wrapped with catchAsync (utils/catchAsync.js).
- *
- * @layer Controller
- * @module auth
  */
+const authService = require('../services/auth.service');
+const { success } = require('../utils/response');
+
+const googleLogin = async (req, res) => {
+    // req.user is attached by authenticate middleware
+    const profile = await authService.verifyGoogleUser(req.user);
+    return success(res, 200, { profile }, 'Google login successful');
+};
+
+const getMe = async (req, res) => {
+    const profile = await authService.getProfile(req.user.sub);
+    return success(res, 200, { profile }, 'Profile retrieved successfully');
+};
+
+const getSession = async (req, res) => {
+    const sessionData = await authService.validateSession(req.user.sub);
+    return success(res, 200, { session: sessionData }, 'Session is valid');
+};
+
+const logout = async (req, res) => {
+    await authService.logout(req.user.sub);
+    return success(res, 200, null, 'Logged out successfully');
+};
+
+module.exports = {
+    googleLogin,
+    getMe,
+    getSession,
+    logout
+};
