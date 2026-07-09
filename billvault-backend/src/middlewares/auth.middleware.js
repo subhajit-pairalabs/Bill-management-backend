@@ -9,9 +9,9 @@ const catchAsync = require('../utils/catchAsync');
 const client = jwksClient({
     jwksUri: process.env.SUPABASE_JWKS_URL
 });
-
+console.log("JWKS URL:", process.env.SUPABASE_JWKS_URL);
 function getKey(header, callback) {
-    client.getSigningKey(header.kid, function(err, key) {
+    client.getSigningKey(header.kid, function (err, key) {
         if (err) {
             return callback(err);
         }
