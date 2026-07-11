@@ -9,36 +9,38 @@ const ensureProfileExists = async (jwtUser) => {
     // Attempt to find existing profile
     let profile = await profileRepository.findProfileById(userId);
 
-    if (profile) {
-        return profile;
+    if (!profile) {
+        // Profile doesn't exist, automatically create one
+        const userMetadata = jwtUser.user_metadata || {};
+        const appMetadata = jwtUser.app_metadata || {};
+
+        // Determine provider reliably (must be one of: 'google', 'phone', 'email')
+        let provider = 'email';
+        if (appMetadata.provider === 'google') {
+            provider = 'google';
+        } else if (jwtUser.phone || appMetadata.provider === 'phone') {
+            provider = 'phone';
+        }
+
+        // Email is now nullable. No fallback needed.
+        const email = jwtUser.email || null;
+
+        const newProfileData = {
+            id: userId,
+            email: email,
+            phone: jwtUser.phone || null,
+            provider: provider,
+            full_name: userMetadata.full_name || userMetadata.name || null,
+            avatar_url: userMetadata.avatar_url || userMetadata.picture || null,
+            onboarding_completed: false
+        };
+
+        profile = await profileRepository.createProfile(newProfileData);
     }
 
-    // Profile doesn't exist, automatically create one
-    const userMetadata = jwtUser.user_metadata || {};
-    const appMetadata = jwtUser.app_metadata || {};
+    // Always update last_login after ensuring profile exists
+    profile = await profileRepository.updateLastLogin(userId);
 
-    // Determine provider reliably (must be one of: 'google', 'phone', 'email')
-    let provider = 'email';
-    if (appMetadata.provider === 'google') {
-        provider = 'google';
-    } else if (jwtUser.phone || appMetadata.provider === 'phone') {
-        provider = 'phone';
-    }
-
-    // Email is now nullable. No fallback needed.
-    const email = jwtUser.email || null;
-
-    const newProfileData = {
-        id: userId,
-        email: email,
-        phone: jwtUser.phone || null,
-        provider: provider,
-        full_name: userMetadata.full_name || userMetadata.name || null,
-        avatar_url: userMetadata.avatar_url || userMetadata.picture || null,
-        onboarding_completed: false
-    };
-
-    profile = await profileRepository.createProfile(newProfileData);
     return profile;
 };
 
@@ -47,7 +49,25 @@ const getProfile = async (jwtUser) => {
     return await ensureProfileExists(jwtUser);
 };
 
+const ApiError = require('../utils/ApiError');
+
 const updateProfile = async (userId, updateData) => {
+    // Load existing profile to check onboarding status
+    const existingProfile = await profileRepository.findProfileById(userId);
+    
+    if (!existingProfile) {
+        throw new ApiError(404, 'Profile not found');
+    }
+
+    if (existingProfile.onboarding_completed) {
+        if (updateData.email !== undefined) {
+            throw new ApiError(400, 'Email cannot be modified after onboarding.');
+        }
+        if (updateData.phone !== undefined) {
+            throw new ApiError(400, 'Phone number cannot be modified after onboarding.');
+        }
+    }
+
     // Inject updated_at here, keeping the repository unaware of business mutations
     // Also automatically mark onboarding as complete when they update their profile
     const dataToUpdate = {
@@ -56,8 +76,6 @@ const updateProfile = async (userId, updateData) => {
         updated_at: new Date().toISOString()
     };
 
-    // By not doing findProfileById first, we save a query. 
-    // The repository's update will throw (PGRST116) if the row doesn't exist.
     const updatedProfile = await profileRepository.updateProfile(userId, dataToUpdate);
     return updatedProfile;
 };

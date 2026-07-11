@@ -46,8 +46,24 @@ const updateProfile = async (id, updateData) => {
     return data;
 };
 
+const updateLastLogin = async (id) => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .update({ last_login: new Date().toISOString() })
+        .eq('id', id)
+        .select('*')
+        .single();
+        
+    if (error) {
+        throw new Error(error.message);
+    }
+    
+    return data;
+};
+
 module.exports = {
     findProfileById,
     createProfile,
-    updateProfile
+    updateProfile,
+    updateLastLogin
 };

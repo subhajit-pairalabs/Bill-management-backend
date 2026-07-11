@@ -9,7 +9,7 @@ const catchAsync = require('../utils/catchAsync');
 const client = jwksClient({
     jwksUri: process.env.SUPABASE_JWKS_URL
 });
-console.log("JWKS URL:", process.env.SUPABASE_JWKS_URL);
+// console.log("JWKS URL:", process.env.SUPABASE_JWKS_URL);
 function getKey(header, callback) {
     client.getSigningKey(header.kid, function (err, key) {
         if (err) {
@@ -29,17 +29,20 @@ const authenticate = catchAsync(async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
-    jwt.verify(token, getKey, {
-        issuer: process.env.SUPABASE_URL ? `${process.env.SUPABASE_URL}/auth/v1` : undefined,
-    }, (err, decoded) => {
-        if (err) {
-            console.error('JWT Verification Failure:', err.message);
-            return next(new ApiError(401, `Unauthorized: ${err.message}`));
-        }
-
-        req.user = decoded;
-        next();
+    await new Promise((resolve, reject) => {
+        jwt.verify(token, getKey, {
+            issuer: process.env.SUPABASE_URL ? `${process.env.SUPABASE_URL}/auth/v1` : undefined,
+        }, (err, decoded) => {
+            if (err) {
+                console.error('JWT Verification Failure:', err.message);
+                return reject(new ApiError(401, `Unauthorized: ${err.message}`));
+            }
+            req.user = decoded;
+            resolve();
+        });
     });
+
+    next();
 });
 
 module.exports = { authenticate };
