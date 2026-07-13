@@ -28,7 +28,7 @@ const createBill = async (userId, billData) => {
 const findBills = async (userId) => {
     const { data, error } = await supabase
         .from('bills')
-        .select('*')
+        .select('*, bill_items(*)')
         .eq('user_id', userId)
         .is('deleted_at', null)
         .order('created_at', { ascending: false });
@@ -43,7 +43,7 @@ const findBills = async (userId) => {
 const findBillById = async (userId, billId) => {
     const { data, error } = await supabase
         .from('bills')
-        .select('*')
+        .select('*, bill_items(*)')
         .eq('user_id', userId)
         .eq('id', billId)
         .is('deleted_at', null)
@@ -93,10 +93,42 @@ const softDeleteBill = async (userId, billId) => {
     return data;
 };
 
+const createBillItems = async (itemsArray) => {
+    if (!itemsArray || itemsArray.length === 0) return [];
+
+    const { data, error } = await supabase
+        .from('bill_items')
+        .insert(itemsArray)
+        .select('*');
+
+    if (error) {
+        const err = new Error(error.message);
+        err.code = error.code;
+        err.details = error.details;
+        throw err;
+    }
+
+    return data;
+};
+
+const deleteBillItems = async (billId) => {
+    const { error } = await supabase
+        .from('bill_items')
+        .delete()
+        .eq('bill_id', billId);
+
+    if (error) {
+        throw new Error(error.message);
+    }
+    return true;
+};
+
 module.exports = {
     createBill,
     findBills,
     findBillById,
     updateBill,
-    softDeleteBill
+    softDeleteBill,
+    createBillItems,
+    deleteBillItems
 };
