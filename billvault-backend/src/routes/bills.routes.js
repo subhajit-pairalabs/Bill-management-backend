@@ -27,9 +27,28 @@ const catchAsync = require('../utils/catchAsync');
  *             properties:
  *               total_amount:
  *                 type: number
+ *                 description: Total amount (only used if bill_items are not provided).
+ *               tax_amount:
+ *                 type: number
+ *               discount_amount:
+ *                 type: number
+ *               bill_items:
+ *                 type: array
+ *                 description: Array of line items. The backend will calculate line totals and override total_amount.
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     item_name:
+ *                       type: string
+ *                     quantity:
+ *                       type: integer
+ *                       minimum: 1
+ *                     unit_price:
+ *                       type: number
+ *                       minimum: 0
  *     responses:
  *       201:
- *         description: Bill created successfully
+ *         description: Bill created successfully. The response will include calculated total_price for each item and the recalculated total_amount for the bill.
  */
 router.post('/', authenticate, validate(createBillSchema, 'body'), catchAsync(billsController.createBill));
 
@@ -91,9 +110,27 @@ router.get('/:id', authenticate, catchAsync(billsController.getBillById));
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               total_amount:
+ *                 type: number
+ *                 description: Total amount (only used if bill_items are not provided).
+ *               bill_items:
+ *                 type: array
+ *                 description: Array of line items. Replaces existing items. The backend will calculate line totals and override total_amount.
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     item_name:
+ *                       type: string
+ *                     quantity:
+ *                       type: integer
+ *                       minimum: 1
+ *                     unit_price:
+ *                       type: number
+ *                       minimum: 0
  *     responses:
  *       200:
- *         description: Bill updated successfully
+ *         description: Bill updated successfully. The response will include calculated total_price for each item and the recalculated total_amount for the bill.
  *       400:
  *         description: Bad Request
  *       404:
