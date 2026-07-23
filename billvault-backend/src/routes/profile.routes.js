@@ -8,6 +8,7 @@ const profileController = require('../controllers/profile.controller');
 const { authenticate } = require('../middlewares/auth.middleware');
 const { validate } = require('../middlewares/validation.middleware');
 const { updateProfileSchema } = require('../validators/profile.validator');
+const upload = require('../middlewares/upload.middleware');
 const catchAsync = require('../utils/catchAsync');
 
 /**
@@ -73,5 +74,33 @@ router.get('/', authenticate, catchAsync(profileController.getProfile));
  *         description: Profile not found
  */
 router.patch('/', authenticate, validate(updateProfileSchema, 'body'), catchAsync(profileController.updateProfile));
+
+/**
+ * @swagger
+ * /profile/avatar:
+ *   post:
+ *     summary: Upload or update profile avatar
+ *     tags: [Profile]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Avatar uploaded successfully
+ *       400:
+ *         description: Bad Request - Validation error
+ *       401:
+ *         description: Unauthorized
+ */
+router.post('/avatar', authenticate, upload.single('avatar'), catchAsync(profileController.uploadAvatar));
 
 module.exports = router;

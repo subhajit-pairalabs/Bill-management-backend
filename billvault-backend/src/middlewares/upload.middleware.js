@@ -9,9 +9,8 @@
 
 const multer = require('multer');
 const { isAllowedMimeType } = require('../utils/file');
-const ApiError = require('../utils/ApiError'); // Ensure this exists, or use standard error handling
-
-const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB
+const ApiError = require('../utils/ApiError');
+const { MAX_FILE_SIZE } = require('../config/constants');
 
 const storage = multer.memoryStorage();
 

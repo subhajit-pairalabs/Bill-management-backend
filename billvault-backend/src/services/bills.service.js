@@ -2,9 +2,10 @@
  * @file services/bills.service.js
  */
 const billsRepository = require('../repositories/bills.repository');
+const attachmentsService = require('./attachments.service');
 const ApiError = require('../utils/ApiError');
 
-const createBill = async (jwtUser, payload) => {
+const createBill = async (jwtUser, payload, files = []) => {
     const userId = jwtUser.sub;
     const { bill_items, ...billData } = payload;
 
@@ -48,6 +49,16 @@ const createBill = async (jwtUser, payload) => {
             await billsRepository.createBillItems(itemsToInsert);
         }
 
+        if (files && files.length > 0) {
+            try {
+                await attachmentsService.attachFilesToBill(userId, createdBill.id, files);
+            } catch (attachmentError) {
+                // Hard delete the bill and bill_items to ensure atomic behavior and prevent orphaned bills
+                await billsRepository.hardDeleteBill(userId, createdBill.id);
+                throw attachmentError;
+            }
+        }
+
         return await billsRepository.findBillById(userId, createdBill.id);
     } catch (error) {
         if (error.code === '23503') { // Foreign Key Violation
@@ -57,9 +68,14 @@ const createBill = async (jwtUser, payload) => {
     }
 };
 
-const getBills = async (jwtUser) => {
+const getBills = async (jwtUser, page, limit) => {
     const userId = jwtUser.sub;
-    return await billsRepository.findBills(userId);
+    return await billsRepository.findBills(userId, page, limit);
+};
+
+const searchBills = async (jwtUser, keyword, category, paymentStatus, page, limit) => {
+    const userId = jwtUser.sub;
+    return await billsRepository.searchBills(userId, keyword, category, paymentStatus, page, limit);
 };
 
 const getBillById = async (jwtUser, billId) => {
@@ -153,6 +169,7 @@ const deleteBill = async (jwtUser, billId) => {
     }
 
     try {
+        await attachmentsService.deleteAttachmentsForBill(billId, userId);
         await billsRepository.softDeleteBill(userId, billId);
         return { success: true };
     } catch (error) {
@@ -166,6 +183,7 @@ const deleteBill = async (jwtUser, billId) => {
 module.exports = {
     createBill,
     getBills,
+    searchBills,
     getBillById,
     updateBill,
     deleteBill

@@ -2,6 +2,16 @@
  * @file services/profile.service.js
  */
 const profileRepository = require('../repositories/profile.repository');
+const storageService = require('./storage.service');
+const ApiError = require('../utils/ApiError');
+
+const enrichProfileAvatar = async (profile) => {
+    if (profile && profile.avatar_url && profile.avatar_url.startsWith('avatars/')) {
+        // Generate a 1-hour presigned URL for the avatar
+        profile.avatar_url = await storageService.generateSignedUrl(profile.avatar_url, 3600);
+    }
+    return profile;
+};
 
 const ensureProfileExists = async (jwtUser) => {
     const userId = jwtUser.sub;
@@ -41,15 +51,13 @@ const ensureProfileExists = async (jwtUser) => {
     // Always update last_login after ensuring profile exists
     profile = await profileRepository.updateLastLogin(userId);
 
-    return profile;
+    return await enrichProfileAvatar(profile);
 };
 
 const getProfile = async (jwtUser) => {
     // getProfile is essentially ensureProfileExists
     return await ensureProfileExists(jwtUser);
 };
-
-const ApiError = require('../utils/ApiError');
 
 const updateProfile = async (userId, updateData) => {
     // Load existing profile to check onboarding status
@@ -77,11 +85,32 @@ const updateProfile = async (userId, updateData) => {
     };
 
     const updatedProfile = await profileRepository.updateProfile(userId, dataToUpdate);
-    return updatedProfile;
+    return await enrichProfileAvatar(updatedProfile);
+};
+
+const uploadAvatar = async (userId, file) => {
+    if (!file) {
+        throw new ApiError(400, 'No avatar file provided');
+    }
+
+    // Use a fixed key (no extension) so every upload overwrites the previous one naturally
+    const objectKey = `avatars/${userId}`;
+
+    // Upload to Cloudflare R2
+    await storageService.uploadFile(file.buffer, objectKey, file.mimetype);
+
+    // Update profile in database
+    const updatedProfile = await profileRepository.updateProfile(userId, {
+        avatar_url: objectKey,
+        updated_at: new Date().toISOString()
+    });
+
+    return await enrichProfileAvatar(updatedProfile);
 };
 
 module.exports = {
     ensureProfileExists,
     getProfile,
-    updateProfile
+    updateProfile,
+    uploadAvatar
 };

@@ -9,9 +9,31 @@ const createBill = async (req, res) => {
     return success(res, 201, { bill }, 'Bill created successfully');
 };
 
+const createManualBill = async (req, res) => {
+    const bill = await billsService.createBill(req.user, req.body, req.files);
+    return success(res, 201, { bill }, 'Bill created successfully');
+};
+
 const getBills = async (req, res) => {
-    const bills = await billsService.getBills(req.user);
-    return success(res, 200, { bills }, 'Bills retrieved successfully');
+    const { page = 1, limit = 10 } = req.query;
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 10;
+
+    const result = await billsService.getBills(req.user, pageNumber, limitNumber);
+    return success(res, 200, result, 'Bills retrieved successfully');
+};
+
+const searchBills = async (req, res) => {
+    const { q, category, payment_status, page = 1, limit = 10 } = req.query;
+    if (!q || typeof q !== 'string' || q.trim() === '') {
+        return res.status(400).json({ success: false, message: 'Search keyword is required' });
+    }
+
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 10;
+
+    const result = await billsService.searchBills(req.user, q.trim(), category, payment_status, pageNumber, limitNumber);
+    return success(res, 200, result, 'Bills retrieved successfully');
 };
 
 const getBillById = async (req, res) => {
@@ -31,7 +53,9 @@ const deleteBill = async (req, res) => {
 
 module.exports = {
     createBill,
+    createManualBill,
     getBills,
+    searchBills,
     getBillById,
     updateBill,
     deleteBill

@@ -15,7 +15,8 @@
  * @module storage
  */
 
-const { PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 const { s3Client } = require('../config/cloudflare');
 
 const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'billvault';
@@ -53,8 +54,14 @@ const deleteFile = async (objectKey) => {
 };
 
 // Placeholders for future implementation
-const generateSignedUrl = async (objectKey) => {
-    throw new Error('Not implemented');
+const generateSignedUrl = async (objectKey, expiresIn = 3600) => {
+    const command = new GetObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: objectKey,
+    });
+    
+    // Generate a pre-signed URL that expires in `expiresIn` seconds
+    return await getSignedUrl(s3Client, command, { expiresIn });
 };
 
 const exists = async (objectKey) => {

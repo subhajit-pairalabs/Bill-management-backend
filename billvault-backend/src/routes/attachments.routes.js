@@ -32,6 +32,13 @@ router.get(
     attachmentsController.getAttachmentById
 );
 
+// GET /api/v1/attachments/:attachmentId/download - Get a presigned download URL for an attachment
+router.get(
+    '/:attachmentId/download',
+    validateAttachmentId,
+    attachmentsController.downloadAttachment
+);
+
 // DELETE /api/v1/attachments/:id - Delete an attachment
 router.delete(
     '/:id',

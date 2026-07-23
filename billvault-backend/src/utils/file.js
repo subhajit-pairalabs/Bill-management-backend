@@ -16,14 +16,7 @@
 
 const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
-
-const ALLOWED_MIME_TYPES = [
-    'application/pdf',
-    'image/jpeg',
-    'image/jpg',
-    'image/png',
-    'image/heic'
-];
+const { ALLOWED_MIME_TYPES } = require('../config/constants');
 
 /**
  * Extracts the file extension safely from a filename

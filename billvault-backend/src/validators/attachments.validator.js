@@ -5,8 +5,9 @@ const Joi = require('joi');
 
 const validateAttachmentId = (req, res, next) => {
     const schema = Joi.object({
-        id: Joi.string().uuid().required()
-    });
+        id: Joi.string().uuid().optional(),
+        attachmentId: Joi.string().uuid().optional()
+    }).or('id', 'attachmentId');
 
     const { error } = schema.validate(req.params);
     if (error) {

@@ -44,6 +44,15 @@ const getAttachmentById = catchAsync(async (req, res) => {
     return success(res, 200, { attachment: sanitizeAttachmentResponse(attachment) }, 'Attachment retrieved successfully');
 });
 
+const downloadAttachment = catchAsync(async (req, res) => {
+    const userId = req.user.sub;
+    const attachmentId = req.params.attachmentId || req.params.id; // Support both route param names
+    
+    const downloadData = await attachmentsService.generateDownloadUrl(userId, attachmentId);
+    
+    return success(res, 200, downloadData, 'Download URL generated successfully');
+});
+
 const deleteAttachment = catchAsync(async (req, res) => {
     const userId = req.user.sub;
     const { id } = req.params;
@@ -57,5 +66,6 @@ module.exports = {
     uploadAttachment,
     getAttachments,
     getAttachmentById,
+    downloadAttachment,
     deleteAttachment
 };
