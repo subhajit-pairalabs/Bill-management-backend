@@ -23,7 +23,20 @@ const updateProfile = async (req, res) => {
     return success(res, 200, { profile: updatedProfile }, 'Profile updated successfully');
 };
 
+const uploadAvatar = async (req, res) => {
+    const userId = req.user.sub;
+    const file = req.file;
+
+    if (!file) {
+        throw new ApiError(400, 'No avatar image provided');
+    }
+
+    const profile = await profileService.uploadAvatar(userId, file);
+    return success(res, 200, { profile }, 'Avatar uploaded successfully');
+};
+
 module.exports = {
     getProfile,
-    updateProfile
+    updateProfile,
+    uploadAvatar
 };

@@ -1,0 +1,2 @@
+ALTER TABLE attachments
+ALTER COLUMN bill_id DROP NOT NULL;

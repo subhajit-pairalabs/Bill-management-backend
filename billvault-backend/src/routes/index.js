@@ -7,11 +7,13 @@ const router = express.Router();
 const authRoutes = require('./auth.routes');
 const profileRoutes = require('./profile.routes');
 const billsRoutes = require('./bills.routes');
+const attachmentsRoutes = require('./attachments.routes');
 
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/profile', profileRoutes);
 router.use('/bills', billsRoutes);
+router.use('/attachments', attachmentsRoutes);
 
 // Export router
 module.exports = router;
